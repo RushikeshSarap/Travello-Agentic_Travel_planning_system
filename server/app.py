@@ -36,6 +36,7 @@ def create_app():
     app.register_blueprint(discovery_bp, url_prefix='/api/discovery')
     
     with app.app_context():
+        import models  # Ensure all models are loaded before create_all
         db.create_all()
         seed_db()
         
