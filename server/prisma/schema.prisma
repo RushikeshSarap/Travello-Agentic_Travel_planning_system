@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   
+  name      String?
+  trips     Trip[]   @relation("UserTrips")
+  messages  Message[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  participatedTrips Trip[] @relation("TripParticipants")
+}
+
+model Trip {
+  id           String        @id @default(uuid())
+  title        String
+  description  String?
+  startDate    DateTime?
+  endDate      DateTime?
+  budget       Float?        @default(0)
+  ownerId      String
+  owner        User          @relation("UserTrips", fields: [ownerId], references: [id])
+  destinations Destination[]
+  activities   Activity[]
+  participants User[]        @relation("TripParticipants")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Destination {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  location    String?
+  tripId      String
+  trip        Trip     @relation(fields: [tripId], references: [id])
+  activities  Activity[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Activity {
+  id            String      @id @default(uuid())
+  title         String
+  description   String?
+  startTime     DateTime?
+  endTime       DateTime?
+  cost          Float?      @default(0)
+  tripId        String
+  trip          Trip        @relation(fields: [tripId], references: [id])
+  destinationId String?
+  destination   Destination? @relation(fields: [destinationId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  tripId    String
+  createdAt DateTime @default(now())
+}
