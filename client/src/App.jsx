@@ -128,8 +128,8 @@ function App() {
         <Navbar user={user} onLogout={handleLogout} />
         <main>
           <Routes>
-            <Route path="/login" element={user ? <Navigate to="/" /> : <Auth type="login" />} />
-            <Route path="/register" element={user ? <Navigate to="/" /> : <Auth type="register" />} />
+            <Route path="/login" element={user ? <Navigate to="/" /> : <Auth type="login" onLogin={setUser} />} />
+            <Route path="/register" element={user ? <Navigate to="/" /> : <Auth type="register" onLogin={setUser} />} />
             <Route path="/" element={user ? <Dashboard /> : <Navigate to="/login" />} />
             <Route path="/trips/:id" element={user ? <TripWorkspace /> : <Navigate to="/login" />} />
           </Routes>

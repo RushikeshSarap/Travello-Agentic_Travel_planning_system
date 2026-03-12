@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, X, Bot, Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import api from '../utils/api';
 
 const AIAssistant = ({ isOpen, onClose }) => {
@@ -69,7 +70,13 @@ const AIAssistant = ({ isOpen, onClose }) => {
               ? 'bg-primary-600 text-white rounded-tr-none' 
               : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'
             }`}>
-              {m.content}
+              {m.role === 'assistant' ? (
+                <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-li:my-1">
+                  <ReactMarkdown>{m.content}</ReactMarkdown>
+                </div>
+              ) : (
+                m.content
+              )}
             </div>
           </div>
         ))}

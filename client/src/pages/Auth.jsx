@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 
-const Auth = ({ type }) => {
+const Auth = ({ type, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -16,6 +16,7 @@ const Auth = ({ type }) => {
       const { data } = await api.post(endpoint, { email, password, name });
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      if (onLogin) onLogin(data.user);
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Authentication failed');
