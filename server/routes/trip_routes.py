@@ -54,3 +54,54 @@ def invite_friend():
         db.session.commit()
         return jsonify({"msg": "Friend invited"}), 200
     return jsonify({"msg": "Trip or User not found"}), 404
+
+@trip_bp.route('/<int:trip_id>', methods=['GET'])
+@jwt_required()
+def get_trip_details(trip_id):
+    trip = Trip.query.get_or_404(trip_id)
+    
+    return jsonify({
+        "id": trip.id,
+        "name": trip.name,
+        "destination": trip.destination,
+        "start_date": trip.start_date.isoformat(),
+        "end_date": trip.end_date.isoformat(),
+        "budget": trip.budget,
+        "itineraries": [{
+            "id": i.id,
+            "day_number": i.day_number,
+            "activities": [{
+                "id": a.id,
+                "time": a.time.strftime('%H:%M') if a.time else None,
+                "location": a.location,
+                "description": a.description,
+                "lat": a.lat,
+                "lng": a.lng
+            } for a in i.activities]
+        } for i in sorted(trip.itineraries, key=lambda x: x.day_number)]
+    })
+
+@trip_bp.route('/<int:trip_id>/activity', methods=['POST'])
+@jwt_required()
+def add_activity(trip_id):
+    data = request.get_json()
+    day_number = data.get('day_number', 1)
+    
+    # Get or create itinerary for this day
+    itinerary = Itinerary.query.filter_by(trip_id=trip_id, day_number=day_number).first()
+    if not itinerary:
+        itinerary = Itinerary(trip_id=trip_id, day_number=day_number)
+        db.session.add(itinerary)
+        db.session.flush()
+    
+    new_activity = Activity(
+        itinerary_id=itinerary.id,
+        time=datetime.strptime(data['time'], '%H:%M').time() if data.get('time') else None,
+        location=data['location'],
+        description=data.get('description'),
+        lat=data.get('lat'),
+        lng=data.get('lng')
+    )
+    db.session.add(new_activity)
+    db.session.commit()
+    return jsonify({"msg": "Activity added"}), 201

@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Heading, Table, Thead, Tbody, Tr, Th, Td, Input, Button, Text, Stat, StatLabel, StatNumber, StatGroup, useToast } from '@chakra-ui/react';
-import axios from 'axios';
-import { useLocation } from 'react-router-dom';
+import { Box, Heading, Table, Thead, Tbody, Tr, Th, Td, Input, Button, Text, Stat, StatLabel, StatNumber, StatGroup, useToast, Progress, Badge, HStack } from '@chakra-ui/react';
 
 const BudgetTracker = () => {
     const location = useLocation();
     const query = new URLSearchParams(location.search);
-    const tripId = query.get('trip_id') || 1; // Default to 1 for now
+    const tripId = query.get('trip_id');
     
     const [budgetData, setBudgetData] = useState({ total_budget: 0, total_spent: 0, remaining: 0, expenses: [] });
-    const [newExpense, setNewExpense] = useState({ item: '', amount: 0, category: 'Travel' });
+    const [newExpense, setNewExpense] = useState({ item: '', amount: 0, category: 'Food' });
     const toast = useToast();
 
     const fetchBudget = async () => {
@@ -21,66 +18,87 @@ const BudgetTracker = () => {
         }
     };
 
+    const percentSpent = Math.min((budgetData.total_spent / budgetData.total_budget) * 100, 100) || 0;
+
     useEffect(() => {
-        fetchBudget();
+        if (tripId) fetchBudget();
     }, [tripId]);
 
     const handleAddExpense = async () => {
+        if (!newExpense.item || !newExpense.amount) return;
         try {
             await axios.post(`http://localhost:5000/api/budget/${tripId}`, newExpense);
             toast({ title: "Expense added", status: "success" });
             fetchBudget();
-            setNewExpense({ item: '', amount: 0, category: 'Travel' });
+            setNewExpense({ item: '', amount: 0, category: 'Food' });
         } catch (error) {
             toast({ title: "Failed to add expense", status: "error" });
         }
     };
 
-    return (
-        <Box p="10" maxW="1000px" m="auto">
-            <Heading mb="10">Budget Tracker</Heading>
-            
-            <StatGroup mb="10" p="6" border="1px solid #eee" borderRadius="lg">
-                <Stat>
-                    <StatLabel>Total Budget</StatLabel>
-                    <StatNumber>${budgetData.total_budget}</StatNumber>
-                </Stat>
-                <Stat>
-                    <StatLabel>Total Spent</StatLabel>
-                    <StatNumber color="red.500">${budgetData.total_spent}</StatNumber>
-                </Stat>
-                <Stat>
-                    <StatLabel>Remaining</StatLabel>
-                    <StatNumber color="green.500">${budgetData.remaining}</StatNumber>
-                </Stat>
-            </StatGroup>
+    if (!tripId) return <Box p="10">Select a trip to view budget.</Box>;
 
-            <Box display="flex" gap="4" mb="10">
-                <Input placeholder="Expense Item" value={newExpense.item} onChange={(e) => setNewExpense({...newExpense, item: e.target.value})} />
-                <Input placeholder="Amount" type="number" value={newExpense.amount} onChange={(e) => setNewExpense({...newExpense, amount: parseFloat(e.target.value)})} />
-                <Button colorScheme="teal" onClick={handleAddExpense}>Add Expense</Button>
+    return (
+        <Box p="10" maxW="1100px" m="auto">
+            <Heading mb="8" color="teal.700">Financial Overview</Heading>
+            
+            <Grid templateColumns="repeat(3, 1fr)" gap="6" mb="10">
+                <GridItem colSpan={2}>
+                    <Box p="8" border="1px solid #eee" borderRadius="2xl" bg="white" boxShadow="sm">
+                        <Text fontWeight="bold" mb="4">Spending Progress</Text>
+                        <Progress value={percentSpent} colorScheme={percentSpent > 90 ? "red" : "teal"} height="24px" borderRadius="full" mb="4" />
+                        <HStack justifyContent="space-between">
+                            <Text color="gray.600">Total Spent: ${budgetData.total_spent}</Text>
+                            <Text fontWeight="bold" color={budgetData.remaining < 0 ? "red.500" : "green.500"}>
+                                {budgetData.remaining < 0 ? `Over budget by $${Math.abs(budgetData.remaining)}` : `$${budgetData.remaining} remaining`}
+                            </Text>
+                        </HStack>
+                    </Box>
+                </GridItem>
+                <GridItem colSpan={1}>
+                    <StatGroup p="8" border="1px solid #eee" borderRadius="2xl" bg="teal.50" textAlign="center">
+                        <Stat>
+                            <StatLabel fontWeight="bold">Trip Budget</StatLabel>
+                            <StatNumber fontSize="4xl" color="teal.600">${budgetData.total_budget}</StatNumber>
+                        </Stat>
+                    </StatGroup>
+                </GridItem>
+            </Grid>
+
+            <Box p="8" border="1px solid #eee" borderRadius="2xl" bg="white" boxShadow="sm" mb="10">
+                <Heading size="md" mb="6">Add New Expense</Heading>
+                <Grid templateColumns="repeat(4, 1fr)" gap="4">
+                    <GridItem colSpan={2}>
+                        <Input placeholder="What did you spend on?" value={newExpense.item} onChange={(e) => setNewExpense({...newExpense, item: e.target.value})} />
+                    </GridItem>
+                    <Input placeholder="Amount ($)" type="number" value={newExpense.amount} onChange={(e) => setNewExpense({...newExpense, amount: parseFloat(e.target.value)})} />
+                    <Button colorScheme="teal" onClick={handleAddExpense}>Record Expense</Button>
+                </Grid>
             </Box>
 
-            <Table variant="simple">
-                <Thead>
-                    <Tr>
-                        <Th>Item</Th>
-                        <Th>Category</Th>
-                        <Th>Date</Th>
-                        <Th isNumeric>Amount</Th>
-                    </Tr>
-                </Thead>
-                <Tbody>
-                    {budgetData.expenses.map(exp => (
-                        <Tr key={exp.id}>
-                            <Td>{exp.item}</Td>
-                            <Td>{exp.category}</Td>
-                            <Td>{new Date(exp.date).toLocaleDateString()}</Td>
-                            <Td isNumeric>${exp.amount}</Td>
+            <Box p="8" border="1px solid #eee" borderRadius="2xl" bg="white" boxShadow="sm">
+                <Heading size="md" mb="6">Transaction History</Heading>
+                <Table variant="simple">
+                    <Thead bg="gray.50">
+                        <Tr>
+                            <Th>Item</Th>
+                            <Th>Category</Th>
+                            <Th>Date</Th>
+                            <Th isNumeric>Amount</Th>
                         </Tr>
-                    ))}
-                </Tbody>
-            </Table>
+                    </Thead>
+                    <Tbody>
+                        {budgetData.expenses.map(exp => (
+                            <Tr key={exp.id} _hover={{ bg: "gray.50" }}>
+                                <Td fontWeight="medium">{exp.item}</Td>
+                                <Td><Badge colorScheme="blue" borderRadius="full" px="3">{exp.category}</Badge></Td>
+                                <Td color="gray.600">{new Date(exp.date).toLocaleDateString()}</Td>
+                                <Td isNumeric fontWeight="bold">${exp.amount}</Td>
+                            </Tr>
+                        ))}
+                    </Tbody>
+                </Table>
+            </Box>
         </Box>
     );
 };

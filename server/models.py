@@ -26,6 +26,9 @@ class Trip(db.Model):
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     
     collaborators = db.relationship('User', secondary='trip_collaboration', backref=db.backref('trips', lazy='dynamic'))
+    itineraries = db.relationship('Itinerary', backref='trip', lazy=True, cascade="all, delete-orphan")
+    expenses = db.relationship('BudgetTrack', backref='trip', lazy=True, cascade="all, delete-orphan")
+    comments = db.relationship('Comment', backref='trip', lazy=True, cascade="all, delete-orphan")
 
 class TripCollaboration(db.Model):
     __tablename__ = 'trip_collaboration'
@@ -36,6 +39,8 @@ class Itinerary(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     trip_id = db.Column(db.Integer, db.ForeignKey('trip.id'), nullable=False)
     day_number = db.Column(db.Integer, nullable=False)
+    
+    activities = db.relationship('Activity', backref='itinerary', lazy=True, cascade="all, delete-orphan")
     
 class Activity(db.Model):
     id = db.Column(db.Integer, primary_key=True)

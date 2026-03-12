@@ -18,9 +18,8 @@ const TripWorkspace = () => {
     useEffect(() => {
         const fetchTripDetails = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/trips`);
-                const currentTrip = response.data.find(t => t.id === parseInt(tripId));
-                setTrip(currentTrip);
+                const response = await axios.get(`http://localhost:5000/api/trips/${tripId}`);
+                setTrip(response.data);
             } catch (error) {
                 console.error(error);
             }
@@ -41,11 +40,32 @@ const TripWorkspace = () => {
         }
     }, [tripId]);
 
+    const handleAddActivity = async (dayNumber) => {
+        const activity = prompt("Enter activity location:");
+        if (!activity) return;
+        const time = prompt("Enter time (HH:MM):", "09:00");
+        
+        try {
+            await axios.post(`http://localhost:5000/api/trips/${tripId}/activity`, {
+                day_number: dayNumber,
+                location: activity,
+                time: time,
+                description: "Manual entry"
+            });
+            toast({ title: "Activity added", status: "success" });
+            // Refresh trip details
+            const response = await axios.get(`http://localhost:5000/api/trips/${tripId}`);
+            setTrip(response.data);
+        } catch (error) {
+            toast({ title: "Failed to add activity", status: "error" });
+        }
+    };
+
     const handleAddComment = async () => {
+        if (!newComment.trim()) return;
         try {
             await axios.post(`http://localhost:5000/api/collab/trips/${tripId}/comments`, { content: newComment });
             setNewComment('');
-            // Refresh comments
             const response = await axios.get(`http://localhost:5000/api/collab/trips/${tripId}/comments`);
             setComments(response.data);
         } catch (error) {
@@ -55,7 +75,7 @@ const TripWorkspace = () => {
 
     const handleInvite = async () => {
         try {
-            await axios.post(`http://localhost:5000/api/trips/${tripId}/invite`, { trip_id: tripId, username: inviteUser });
+            await axios.post(`http://localhost:5000/api/trips/${tripId}/invite`, { trip_id: parseInt(tripId), username: inviteUser });
             toast({ title: "Invite sent!", status: "success" });
             setInviteUser('');
         } catch (error) {
@@ -63,54 +83,83 @@ const TripWorkspace = () => {
         }
     };
 
-    const addToCalendar = async () => {
-        try {
-            await axios.post('http://localhost:5000/api/google/add-to-calendar', { trip_id: tripId });
-            toast({ title: "Calendar Sync Requested", description: "Google Calendar API placeholder triggered", status: "info" });
-        } catch (error) {
-            toast({ title: "Calendar Sync Failed", status: "error" });
-        }
-    }
-
     if (!trip) return <Box p="10">Loading Trip Workspace...</Box>;
 
     return (
         <Box p="5">
-            <Heading mb="5">{trip.name} - Workspace</Heading>
-            <Grid templateColumns="repeat(3, 1fr)" gap={6}>
+            <Heading mb="5" color="teal.600">{trip.name} - {trip.destination}</Heading>
+            <Text mb="5" fontSize="lg" fontWeight="semibold">
+                {new Date(trip.start_date).toLocaleDateString()} - {new Date(trip.end_date).toLocaleDateString()}
+            </Text>
+            
+            <Grid templateColumns="repeat(3, 1fr)" gap={8}>
                 <GridItem colSpan={2}>
-                    <Box height="500px" border="1px solid #ddd" borderRadius="md" mb="5">
+                    <Box height="400px" border="1px solid #ddd" borderRadius="xl" overflow="hidden" mb="8" boxShadow="sm">
                         <Map coordinates={{ lat: 20.5937, lng: 78.9629 }} zoom={5} />
                     </Box>
-                    <Box p="5" border="1px solid #ddd" borderRadius="md">
-                        <Heading size="md" mb="3">Itinerary</Heading>
-                        <Text>Click destinations on map to add to itinerary (Coming Soon)</Text>
-                        <Button mt="4" colorScheme="blue" onClick={addToCalendar}>Add trip to Google Calendar</Button>
-                    </Box>
+                    
+                    <VStack align="stretch" spacing="6">
+                        <Heading size="md">Itinerary</Heading>
+                        {trip.itineraries && trip.itineraries.length > 0 ? (
+                            trip.itineraries.map((day) => (
+                                <Box key={day.id} p="5" border="1px solid #eee" borderRadius="lg" bg="white" boxShadow="xs">
+                                    <Box display="flex" justifyContent="space-between" alignItems="center" mb="4">
+                                        <Heading size="sm" color="blue.500">Day {day.day_number}</Heading>
+                                        <Button size="xs" colorScheme="blue" variant="ghost" onClick={() => handleAddActivity(day.day_number)}>+ Add Activity</Button>
+                                    </Box>
+                                    <List spacing={3}>
+                                        {day.activities && day.activities.map(act => (
+                                            <ListItem key={act.id} p="3" bg="gray.50" borderRadius="md" borderLeft="4px solid" borderColor="blue.300">
+                                                <Box display="flex" gap="4">
+                                                    <Text fontWeight="bold" minW="60px">{act.time}</Text>
+                                                    <Box>
+                                                        <Text fontWeight="semibold">{act.location}</Text>
+                                                        <Text fontSize="sm" color="gray.600">{act.description}</Text>
+                                                    </Box>
+                                                </Box>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                </Box>
+                            ))
+                        ) : (
+                            <Box p="10" textAlign="center" border="2px dashed #eee" borderRadius="xl">
+                                <Text color="gray.500">No activities planned yet.</Text>
+                                <Button mt="4" colorScheme="purple" size="sm" onClick={() => window.location.href='/ai-assistant'}>Ask AI for a Plan</Button>
+                            </Box>
+                        )}
+                        <Button mt="4" colorScheme="blue" variant="outline" onClick={() => handleAddActivity(trip.itineraries?.length + 1 || 1)}>Add Day</Button>
+                        <Button mt="2" colorScheme="orange" variant="solid" onClick={() => window.location.href=`/things?trip_id=${tripId}`}>Explore Destinations on Map</Button>
+                    </VStack>
                 </GridItem>
+                
                 <GridItem colSpan={1}>
-                    <VStack align="stretch" spacing="5">
-                        <Box p="5" border="1px solid #ddd" borderRadius="md">
-                            <Heading size="sm" mb="3">Invite Friends</Heading>
-                            <Box display="flex" gap="2">
-                                <Input placeholder="Username" value={inviteUser} onChange={(e) => setInviteUser(e.target.value)} size="sm" />
-                                <Button colorScheme="teal" size="sm" onClick={handleInvite}>Invite</Button>
+                    <VStack align="stretch" spacing="6">
+                        <Box p="6" border="1px solid #eee" borderRadius="xl" bg="white" boxShadow="sm">
+                            <Heading size="sm" mb="4">Collaborators</Heading>
+                            <Box display="flex" gap="2" mb="4">
+                                <Input placeholder="Invite by username" value={inviteUser} onChange={(e) => setInviteUser(e.target.value)} size="sm" borderRadius="md" />
+                                <Button colorScheme="teal" size="sm" onClick={handleInvite} px="6">Invite</Button>
                             </Box>
                         </Box>
-                        <Box p="5" border="1px solid #ddd" borderRadius="md" height="400px" overflowY="auto">
-                            <Heading size="sm" mb="3">Discussion</Heading>
-                            <List spacing={3} mb="4">
+                        
+                        <Box p="6" border="1px solid #eee" borderRadius="xl" bg="white" boxShadow="sm" height="500px" display="flex" flexDirection="column">
+                            <Heading size="sm" mb="4">Group Discussion</Heading>
+                            <VStack flex="1" overflowY="auto" align="stretch" spacing="4" mb="4" px="1">
                                 {comments.map(c => (
-                                    <ListItem key={c.id}>
-                                        <Text fontWeight="bold" fontSize="xs">{c.username} - {new Date(c.timestamp).toLocaleTimeString()}</Text>
-                                        <Text fontSize="sm">{c.content}</Text>
-                                        <Divider mt="2" />
-                                    </ListItem>
+                                    <Box key={c.id} alignSelf={c.username === 'You' ? 'flex-end' : 'flex-start'} maxW="90%">
+                                        <Text fontSize="xs" color="gray.500" mb="1" textAlign={c.username === 'You' ? 'right' : 'left'}>
+                                            {c.username} • {new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </Text>
+                                        <Box p="3" bg={c.username === 'You' ? 'blue.500' : 'gray.100'} color={c.username === 'You' ? 'white' : 'black'} borderRadius="lg" borderTopRightRadius={c.username === 'You' ? '0' : 'lg'} borderTopLeftRadius={c.username === 'You' ? 'lg' : '0'}>
+                                            <Text fontSize="sm">{c.content}</Text>
+                                        </Box>
+                                    </Box>
                                 ))}
-                            </List>
+                            </VStack>
                             <Box display="flex" gap="2">
-                                <Input placeholder="Add a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)} size="sm" />
-                                <Button colorScheme="blue" size="sm" onClick={handleAddComment}>Send</Button>
+                                <Input placeholder="Message group..." value={newComment} onChange={(e) => setNewComment(e.target.value)} size="md" borderRadius="full" />
+                                <Button colorScheme="blue" size="md" onClick={handleAddComment} borderRadius="full">Send</Button>
                             </Box>
                         </Box>
                     </VStack>
