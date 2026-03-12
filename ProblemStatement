@@ -1,0 +1,65 @@
+Agentic Travel Planning System
+Overview
+The Collaborative Travel Planning Platform is a web-based system designed to help
+individuals and groups organize trips more efficiently. It provides a structured space
+where users can collect destinations, plan activities, manage accommodations and
+transportation, and coordinate with travel partners. Since group trips often involve
+different preferences, schedules, and budgets, the platform helps balance these
+constraints and create itineraries that work for everyone. By integrating an Agentic
+AI component, the system can also assist users by generating travel plans,
+suggesting activities, and dynamically adjusting itineraries based on user
+preferences, time, and budget.
+Objectives
+1. Trip Workspace
+Develop a system where users can create and manage travel plans.
+Each trip should function as a shared workspace where users can:
+● define travel dates and trip duration
+● add destinations or activities
+● maintain travel notes and considerations
+Trips may be planned individually or collaboratively with other participants.
+2. Destination Discovery and Saving
+Allow users to collect and organize places they want to visit.
+Users should be able to:
+● save destinations, attractions, or restaurants
+● organize saved places within a trip
+● attach notes or preferences to saved locations
+This helps travelers maintain a curated list of potential activities.
+3. Itinerary Planning
+Users should be able to organize destinations and activities into a structured
+itinerary.
+Possible capabilities include:
+● arranging activities by day or time
+● modifying schedules when plans change
+● organizing travel routes between destinations
+This helps travelers design clear and flexible travel plans.
+4. Collaborative Planning
+Enable multiple users to collaborate on the same trip.
+Participants in a trip should be able to:
+● suggest destinations or activities
+● discuss and refine plans
+● propose modifications to the itinerary
+This allows groups to plan trips collectively.
+5. Budget Awareness
+The platform should allow users to estimate and track travel expenses.
+Possible features include:
+● defining a trip budget
+● estimating costs for activities or transportation
+● monitoring approximate spending across the itinerary
+This helps travelers keep plans within financial constraints.
+6. Agentic AI Travel Assistant
+Participants should integrate an Agentic AI component that helps users plan and
+refine trips.
+The agent may assist with tasks such as:
+● generating itinerary suggestions based on user preferences
+● recommending destinations or activities within budget constraints
+● adjusting itineraries when travel parameters change
+● summarizing travel plans and suggesting improvements
+The goal is to create an intelligent assistant that helps travelers organize trips more
+efficiently.
+Expected Outcome
+Teams should deliver a prototype platform capable of:
+● creating and managing collaborative trip plans
+● collecting and organizing destinations and activities
+● structuring multi-day travel itineraries
+● supporting group-based planning and discussion
+● assisting travelers through an Agentic AI planning assistant
