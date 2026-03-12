@@ -1,4 +1,7 @@
-import { Box, Heading, Table, Thead, Tbody, Tr, Th, Td, Input, Button, Text, Stat, StatLabel, StatNumber, StatGroup, useToast, Progress, Badge, HStack } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { Box, Heading, Table, Thead, Tbody, Tr, Th, Td, Input, Button, Text, Stat, StatLabel, StatNumber, StatGroup, useToast, Progress, Badge, HStack, Grid, GridItem } from '@chakra-ui/react';
+import { useLocation } from 'react-router-dom';
+import apiClient from '../api/apiClient';
 
 const BudgetTracker = () => {
     const location = useLocation();
@@ -11,7 +14,7 @@ const BudgetTracker = () => {
 
     const fetchBudget = async () => {
         try {
-            const response = await axios.get(`http://localhost:5000/api/budget/${tripId}`);
+            const response = await apiClient.get(`/budget/${tripId}`);
             setBudgetData(response.data);
         } catch (error) {
             console.error(error);
@@ -27,7 +30,7 @@ const BudgetTracker = () => {
     const handleAddExpense = async () => {
         if (!newExpense.item || !newExpense.amount) return;
         try {
-            await axios.post(`http://localhost:5000/api/budget/${tripId}`, newExpense);
+            await apiClient.post(`/budget/${tripId}`, newExpense);
             toast({ title: "Expense added", status: "success" });
             fetchBudget();
             setNewExpense({ item: '', amount: 0, category: 'Food' });

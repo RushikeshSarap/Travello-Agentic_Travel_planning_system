@@ -45,44 +45,46 @@ import { useLocation } from "react-router-dom";
 //   },
 // ];
 function parseItinerary(itineraryString) {
-  const itineraryData = [];
-  const daySections = itineraryString.split("**Day");
+  try {
+    // The backend now returns clean JSON: { days: [ { day_number: 1, activities: [...] } ] }
+    const parsed = typeof itineraryString === "string" ? JSON.parse(itineraryString) : itineraryString;
+    
+    if (!parsed || !parsed.days) {
+      console.warn("No 'days' array found in JSON", parsed);
+      return [];
+    }
 
-  daySections.slice(1).forEach((section) => {
-    const [dayTitle, ...activities] = section.trim().split("\n* ");
-    const title = `Day ${dayTitle.split("**")[0].trim()}`;
+    // Convert the Mistral JSON format to the format expected by the component UI
+    return parsed.days.map(day => {
+      // Format activities into simple strings if they are objects
+      const activityStrings = day.activities.map(act => {
+        if (typeof act === 'string') return act;
+        const timeStr = act.time ? `${act.time} - ` : '';
+        const locStr = act.location ? `${act.location}: ` : '';
+        return `${timeStr}${locStr}${act.description || ''}`;
+      });
 
-    const cleanedTitle = title.replace(/\*\*/g, "").trim(); // Remove ** from title
-    const cleanedActivities = activities.map(
-      (activity) => activity.replace(/\*\*/g, "").replace(/\n/g, "").trim() // Remove ** and newlines from activities
-    );
-
-    itineraryData.push({
-      title: cleanedTitle,
-      activities: cleanedActivities,
+      return {
+        title: `Day ${day.day_number}`,
+        activities: activityStrings,
+      };
     });
-  });
+  } catch (error) {
+    console.error("Failed to parse itinerary JSON:", error);
+    return [];
+  }
+}
 
-  return itineraryData;
-}
-function convertObjectToArray(itineraryObject) {
-  return Object.keys(itineraryObject).map((key) => {
-    return {
-      title: itineraryObject[key].title,
-      activities: itineraryObject[key].activities,
-    };
-  });
-}
 const Itinerary = ({ data }) => {
   const [openIndex, setOpenIndex] = useState(null);
   const location = useLocation();
+  
+  // plannedItinerary is passed via state from TripPlannerForm
   let { plannedItinerary } = location.state || {};
-  plannedItinerary = parseItinerary(plannedItinerary);
-  plannedItinerary = convertObjectToArray(plannedItinerary);
-  console.log(typeof plannedItinerary);
-  let itineraryData = plannedItinerary;
+  
+  let itineraryData = parseItinerary(plannedItinerary);
+  console.log("Parsed Itinerary Data:", itineraryData);
 
-  console.log(itineraryData);
   const handleToggle = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };

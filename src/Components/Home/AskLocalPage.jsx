@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../../api/apiClient";
 function AskLocalPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -20,36 +20,16 @@ function AskLocalPage() {
     if (input.trim()) {
       const userMessage = { text: input, sender: "User" };
       setMessages([...messages, userMessage]);
+      const currentInput = input;
       setInput("");
       try {
-        // Replace with your API endpoint and request method
-        // const response = await fetch("https://api.example.com/ask-local", {
-        //   method: "POST",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        //   body: JSON.stringify({ message: input }),
-        // });
-        let data = await axios({
-          url: "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=AIzaSyCJb_fkgDEyhadYyBJOleHSG0JWBi49uXI",
-          method: "post",
-          data: {
-            contents: [
-              {
-                role: "user",
-                parts: [
-                  {
-                    text: `As a knowledgeable local of ${city}, answer the following question in one line in English: "${userMessage.text}". Ensure your response reflects local customs, culture, and insights.`,
-                  },
-                ],
-              },
-            ],
-          },
+        const response = await apiClient.post('/ai/ask-local', {
+            city: city,
+            question: currentInput
         });
-        data = data["data"]["candidates"][0]["content"]["parts"][0]["text"];
-
+        
         const botMessage = {
-          text: data || "Sorry, I could not process your request.",
+          text: response.data.response || "Sorry, I could not process your request.",
           sender: "Bot",
         };
         setMessages([...messages, userMessage, botMessage]);

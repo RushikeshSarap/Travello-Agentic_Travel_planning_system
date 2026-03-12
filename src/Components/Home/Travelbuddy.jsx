@@ -10,10 +10,13 @@ import {
   Select,
   useToast,
 } from "@chakra-ui/react";
+import apiClient from "../../api/apiClient";
+
 
 function TravelBuddyMatching() {
   const [userProfiles, setUserProfiles] = useState([]);
   const [matches, setMatches] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     destination: "",
     interest: "",
@@ -23,284 +26,18 @@ function TravelBuddyMatching() {
   const toast = useToast();
 
   useEffect(() => {
-    // Fetch user profiles (replace with API call)
-    const exampleProfiles = [
-      {
-        id: 1,
-        name: "John",
-        avatar: "https://example.com/avatar1.jpg",
-        destination: "Goa",
-        dates: "2024-09-15 to 2024-09-20",
-        interests: "Sightseeing, Museums,Food",
-        budget: "₹60,000",
-        preference: "male" 
-      },
-      {
-        id: 2,
-        name: "Jane",
-        avatar: "https://example.com/avatar2.jpg",
-        destination: "Delhi",
-        dates: "2024-10-05 to 2024-10-10",
-        interests: "Food, Culture",
-        budget: "₹40,000",
-        preference: "female"
-      },
-      {
-        id: 3,
-        name: "Alex",
-        avatar: "https://example.com/avatar3.jpg",
-        destination: "Goa",
-        dates: "2024-11-01 to 2024-11-10",
-        interests: "Tech, Sightseeing",
-        budget: "₹60,000",
-      },
-      {
-        id: 4,
-        name: "Emily White",
-        avatar: "https://example.com/avatar4.jpg",
-        destination: "Chennai",
-        dates: "2024-10-15 to 2024-10-20",
-        interests: "Culture, Food",
-        budget: "₹40,000",
-      },
-      {
-        id: 5,
-        name: "Michael Green",
-        avatar: "https://example.com/avatar5.jpg",
-        destination: "Hyderabad",
-        dates: "2024-09-25 to 2024-10-05",
-        interests: "History, Food",
-        budget: "₹60,000",
-      },
-      {
-        id: 6,
-        name: "Sophia Black",
-        avatar: "https://example.com/avatar6.jpg",
-        destination: "Kolkata",
-        dates: "2024-10-01 to 2024-10-10",
-        interests: "Culture, Arts",
-        budget: "₹40,000",
-      },
-      {
-        id: 7,
-        name: "Sunil",
-        avatar: "https://example.com/avatar7.jpg",
-        destination: "Goa",
-        dates: "2024-09-20 to 2024-09-30",
-        interests: "Historical Sites, Culture",
-        budget: "₹20,000",
-      },
-      {
-        id: 8,
-        name: "Olivia Martinez",
-        avatar: "https://example.com/avatar8.jpg",
-        destination: "Udaipur",
-        dates: "2024-10-10 to 2024-10-15",
-        interests: "Sightseeing, Lakes",
-        budget: "₹60,000",
-      },
-      {
-        id: 9,
-        name: "James Anderson",
-        avatar: "https://example.com/avatar9.jpg",
-        destination: "Goa",
-        dates: "2024-11-05 to 2024-11-15",
-        interests: "Beaches, Nightlife",
-        budget: "₹60,000",
-      },
-      {
-        id: 10,
-        name: "Ava Thomas",
-        avatar: "https://example.com/avatar10.jpg",
-        destination: "Pune",
-        dates: "2024-09-10 to 2024-09-20",
-        interests: "Food, Tech",
-        budget: "₹40,000",
-      },
-      {
-        id: 11,
-        name: "William Taylor",
-        avatar: "https://example.com/avatar11.jpg",
-        destination: "Agra",
-        dates: "2024-10-20 to 2024-10-25",
-        interests: "Historical Sites, Culture",
-        budget: "₹20,000",
-      },
-      {
-        id: 12,
-        name: "Isabella Lee",
-        avatar: "https://example.com/avatar12.jpg",
-        destination: "Amritsar",
-        dates: "2024-11-01 to 2024-11-07",
-        interests: "Culture, Food",
-        budget: "₹40,000",
-      },
-      {
-        id: 13,
-        name: "Ethan Harris",
-        avatar: "https://example.com/avatar13.jpg",
-        destination: "Varanasi",
-        dates: "2024-10-15 to 2024-10-25",
-        interests: "Spirituality, History",
-        budget: "₹60,000",
-      },
-      {
-        id: 14,
-        name: "Mia Clark",
-        avatar: "https://example.com/avatar14.jpg",
-        destination: "Shimla",
-        dates: "2024-09-25 to 2024-10-05",
-        interests: "Nature, Hiking",
-        budget: "₹40,000",
-      },
-      {
-        id: 15,
-        name: "Benjamin Lewis",
-        avatar: "https://example.com/avatar15.jpg",
-        destination: "Manali",
-        dates: "2024-11-10 to 2024-11-20",
-        interests: "Adventure, Nature",
-        budget: "₹60,000",
-      },
-      {
-        id: 16,
-        name: "Charlotte Robinson",
-        avatar: "https://example.com/avatar16.jpg",
-        destination: "Rishikesh",
-        dates: "2024-10-01 to 2024-10-10",
-        interests: "Spirituality, Adventure",
-        budget: "₹40,000",
-      },
-      {
-        id: 17,
-        name: "Liam Walker",
-        avatar: "https://example.com/avatar17.jpg",
-        destination: "Chandigarh",
-        dates: "2024-09-20 to 2024-09-30",
-        interests: "Architecture, Parks",
-        budget: "₹20,000",
-      },
-      {
-        id: 18,
-        name: "Amelia Hall",
-        avatar: "https://example.com/avatar18.jpg",
-        destination: "Bhopal",
-        dates: "2024-10-10 to 2024-10-20",
-        interests: "History, Culture",
-        budget: "₹40,000",
-      },
-      {
-        id: 19,
-        name: "Lucas Young",
-        avatar: "https://example.com/avatar19.jpg",
-        destination: "Nagpur",
-        dates: "2024-11-05 to 2024-11-15",
-        interests: "Nature, Wildlife",
-        budget: "₹60,000",
-      },
-      {
-        id: 20,
-        name: "Harper Allen",
-        avatar: "https://example.com/avatar20.jpg",
-        destination: "Kochi",
-        dates: "2024-09-10 to 2024-09-20",
-        interests: "Beaches, Culture",
-        budget: "₹60,000",
-      },
-      {
-        id: 21,
-        name: "Oliver Scott",
-        avatar: "https://example.com/avatar21.jpg",
-        destination: "Jaipur",
-        dates: "2024-10-15 to 2024-10-25",
-        interests: "Historical Sites, Culture",
-        budget: "₹40,000",
-      },
-      {
-        id: 22,
-        name: "Ella Wright",
-        avatar: "https://example.com/avatar22.jpg",
-        destination: "Jaisalmer",
-        dates: "2024-11-01 to 2024-11-10",
-        interests: "Desert, Culture",
-        budget: "₹60,000",
-      },
-      {
-        id: 23,
-        name: "Jacob King",
-        avatar: "https://example.com/avatar23.jpg",
-        destination: "Rajasthan",
-        dates: "2024-09-25 to 2024-10-05",
-        interests: "Culture, History",
-        budget: "₹40,000",
-      },
-      {
-        id: 24,
-        name: "Sameer",
-        avatar: "https://example.com/avatar24.jpg",
-        destination: "Delhi",
-        dates: "2024-10-05 to 2024-10-15",
-        interests: "Food, Shopping",
-        budget: "₹40,000",
-        preference: "male"
-      },
-      {
-        id: 25,
-        name: "Elijah Hill",
-        avatar: "https://example.com/avatar25.jpg",
-        destination: "Gujarat",
-        dates: "2024-11-10 to 2024-11-20",
-        interests: "Culture, Nature",
-        budget: "₹60,000",
-      },
-      {
-        id: 26,
-        name: "Chloe Adams",
-        avatar: "https://example.com/avatar26.jpg",
-        destination: "Pondicherry",
-        dates: "2024-09-15 to 2024-09-25",
-        interests: "Beaches, Food",
-        budget: "₹40,000",
-      },
-      {
-        id: 27,
-        name: "James Brown",
-        avatar: "https://example.com/avatar27.jpg",
-        destination: "Shillong",
-        dates: "2024-10-01 to 2024-10-10",
-        interests: "Nature, Adventure",
-        budget: "₹60,000",
-      },
-      {
-        id: 28,
-        name: "Avery Nelson",
-        avatar: "https://example.com/avatar28.jpg",
-        destination: "Dharamshala",
-        dates: "2024-10-15 to 2024-10-25",
-        interests: "Spirituality, Hiking",
-        budget: "₹40,000",
-      },
-      {
-        id: 29,
-        name: "William Wilson",
-        avatar: "https://example.com/avatar29.jpg",
-        destination: "Varanasi",
-        dates: "2024-09-05 to 2024-09-15",
-        interests: "Spirituality, Culture",
-        budget: "₹20,000",
-      },
-      {
-        id: 30,
-        name: "Mia Wright",
-        avatar: "https://example.com/avatar30.jpg",
-        destination: "Mysore",
-        dates: "2024-10-20 to 2024-10-30",
-        interests: "Historical Sites, Culture",
-        budget: "₹60,000",
-      },
-    ];
-
-    setUserProfiles(exampleProfiles);
+    const fetchBuddies = async () => {
+      try {
+        const response = await apiClient.get('/discovery/buddies');
+        setUserProfiles(response.data);
+        setMatches(response.data);
+      } catch (error) {
+        console.error("Error fetching buddies", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBuddies();
   }, []);
 
   const handleMatchSearch = () => {

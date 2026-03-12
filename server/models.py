@@ -67,3 +67,54 @@ class Comment(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     
     user = db.relationship('User', backref=db.backref('comments', lazy=True))
+
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    image = db.Column(db.String(255))
+    price = db.Column(db.String(20))
+    description = db.Column(db.Text)
+    category = db.Column(db.String(50))
+    rating = db.Column(db.Float)
+
+class TravelBuddyProfile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), nullable=False)
+    avatar = db.Column(db.String(255))
+    destination = db.Column(db.String(100))
+    dates = db.Column(db.String(100))
+    interests = db.Column(db.String(255))
+    budget = db.Column(db.String(50))
+    preference = db.Column(db.String(20))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
+class SafetyRating(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    district = db.Column(db.String(100), unique=True, nullable=False)
+    crimes = db.Column(db.Integer, default=0)
+
+class Hotel(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    image = db.Column(db.String(255))
+    rating = db.Column(db.String(10))
+    price = db.Column(db.String(50))
+    category = db.Column(db.String(50))
+
+class Experience(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    image = db.Column(db.String(255))
+    reviews = db.Column(db.String(20))
+    price = db.Column(db.String(50))
+
+class BeachDestination(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    image = db.Column(db.String(255))
+
+class HomeRental(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    image = db.Column(db.String(255))
+    count = db.Column(db.String(50))

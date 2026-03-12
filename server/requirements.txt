@@ -3,7 +3,7 @@ Flask-Cors
 Flask-SQLAlchemy
 Flask-JWT-Extended
 mysql-connector-python
-openai
+mistralai
 google-auth
 google-auth-oauthlib
 google-auth-httplib2

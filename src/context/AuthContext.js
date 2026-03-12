@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 
 const AuthContext = createContext();
 
@@ -7,24 +7,16 @@ export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token'));
 
-    useEffect(() => {
-        if (token) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            // Optionally fetch user profile here
-        } else {
-            delete axios.defaults.headers.common['Authorization'];
-        }
-    }, [token]);
-
     const login = async (username, password) => {
-        const response = await axios.post('http://localhost:5000/api/auth/login', { username, password });
-        setToken(response.data.access_token);
-        setUser(response.data.user);
-        localStorage.setItem('token', response.data.access_token);
+        const response = await apiClient.post('/auth/login', { username, password });
+        const { access_token, user } = response.data;
+        setToken(access_token);
+        setUser(user);
+        localStorage.setItem('token', access_token);
     };
 
     const signup = async (username, email, password) => {
-        await axios.post('http://localhost:5000/api/auth/signup', { username, email, password });
+        await apiClient.post('/auth/signup', { username, email, password });
     };
 
     const logout = () => {

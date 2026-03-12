@@ -1,10 +1,8 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:4000';
+import apiClient from './apiClient';
 
 export const fetchSafetyData = async (searchTerm) => {
   try {
-    const response = await axios.get(`${API_URL}/safety-rating`, {
+    const response = await apiClient.get('/discovery/safety', {
       params: { district: searchTerm },
     });
     return response.data;

@@ -122,46 +122,32 @@
 // };
 
 // export default SouvenirMarketplace;
-import React from "react";
-import { Box, Image, Text, Grid, Button, Flex, Icon } from "@chakra-ui/react";
+import React, { useState, useEffect } from "react";
+import { Box, Image, Text, Grid, Button, Flex, Icon, Spinner } from "@chakra-ui/react";
 import { StarIcon } from "@chakra-ui/icons";
 import { Link } from "react-router-dom";
-import jaipur from "../../assets/Jaipur.png";
-import madhubani from "../../assets/Madhubani (1).png";
-import pashmina from "../../assets/Pashmina.png";
-
-export const productData = [
-  {
-    id: 1,
-    name: "Madhubani Painting",
-    image: madhubani,
-    price: "₹2,500",
-    description: "Traditional Madhubani painting by artisans from Bihar.",
-    category: "Handicrafts",
-    rating: 4.8,
-  },
-  {
-    id: 2,
-    name: "Pashmina Shawl",
-    image: pashmina,
-    price: "₹5,000",
-    description: "Authentic Kashmiri Pashmina shawl.",
-    category: "Handicrafts",
-    rating: 4.5,
-  },
-  {
-    id: 4,
-    name: "Jaipur Blue Pottery Vase",
-    image: jaipur,
-    price: "₹1,200",
-    description:
-      "Handcrafted Blue Pottery vase from Jaipur, featuring intricate floral designs.",
-    category: "Handicrafts",
-    rating: 4.6,
-  },
-];
+import apiClient from "../../api/apiClient";
 
 const SouvenirMarketplace = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await apiClient.get('/discovery/products');
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching products", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  if (loading) return <Flex justify="center" p="100px"><Spinner size="xl" /></Flex>;
+
   return (
     <Box bg="#FFF7E1" p="60px 0" mt="60px" marginBottom="100px">
       <Box w="85%" m="auto" textAlign="center">
@@ -173,7 +159,7 @@ const SouvenirMarketplace = () => {
         </Text>
 
         <Grid templateColumns="repeat(3, 1fr)" gap="30px">
-          {productData.map((product) => (
+          {products.map((product) => (
             <Box
               key={product.id}
               bg="white"
@@ -187,7 +173,7 @@ const SouvenirMarketplace = () => {
               justifyContent="space-between"
             >
               <Image
-                src={product.image}
+                src={product.image || "https://images.unsplash.com/photo-1544642899-f0d6e5f6ed6a?w=400"}
                 alt={product.name}
                 objectFit="cover"
                 w="100%"

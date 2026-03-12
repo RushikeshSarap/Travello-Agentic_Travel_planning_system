@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Box, Button, Input, VStack, Heading, Text, Textarea, Spinner, useToast } from '@chakra-ui/react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
+import { Box, Button, Input, VStack, Heading, Text, Grid, GridItem, Spinner, List, ListItem, Divider, useToast } from '@chakra-ui/react';
+import apiClient from '../api/apiClient';
 
 const AIAssistant = () => {
     const [input, setInput] = useState({
@@ -18,7 +18,7 @@ const AIAssistant = () => {
     useEffect(() => {
         const fetchTrips = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/trips');
+                const response = await apiClient.get('/trips');
                 setTrips(response.data);
             } catch (error) {
                 console.error("Failed to fetch trips", error);
@@ -31,7 +31,7 @@ const AIAssistant = () => {
         setLoading(true);
         try {
             const interestsArray = input.interests.split(',').map(i => i.trim());
-            const response = await axios.post('http://localhost:5000/api/ai/generate-itinerary', {
+            const response = await apiClient.post('/ai/generate-itinerary', {
                 ...input,
                 interests: interestsArray
             });
@@ -49,7 +49,7 @@ const AIAssistant = () => {
             return;
         }
         try {
-            await axios.post('http://localhost:5000/api/ai/apply-itinerary', {
+            await apiClient.post('/ai/apply-itinerary', {
                 trip_id: parseInt(selectedTrip),
                 ...itinerary
             });

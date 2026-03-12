@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Text,
@@ -6,32 +7,30 @@ import {
   Select,
   Flex,
   VStack,
+  Spinner,
 } from "@chakra-ui/react";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import apiClient from "../../api/apiClient";
+
 function Homefive() {
-  const hotelData = [
-    {
-      id: 1,
-      img: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/26/c6/fa/7c/caption.jpg?w=1600&h=-1&s=1",
-      title: "Grand Luxury Hotel",
-      rating: "4.5/5",
-      price: "₹8,000 per night",
-    },
-    {
-      id: 2,
-      img: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/26/c6/f8/e7/caption.jpg?w=2400&h=-1&s=1&cx=1920&cy=1080&chk=v1_f9606cb9a59e5ba4d9c3",
-      title: "Comfort Inn",
-      rating: "4.0/5",
-      price: "₹4,500 per night",
-    },
-    {
-      id: 3,
-      img: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/26/c6/fa/08/caption.jpg?w=1600&h=-1&s=1",
-      title: "Budget Stay",
-      rating: "3.5/5",
-      price: "₹2,500 per night",
-    },
-  ];
+  const [hotels, setHotels] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHotels = async () => {
+      try {
+        const response = await apiClient.get('/discovery/hotels');
+        setHotels(response.data);
+      } catch (error) {
+        console.error("Error fetching hotels", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHotels();
+  }, []);
+
+  if (loading) return <Box textAlign="center" py="40px"><Spinner /></Box>;
 
   return (
     <Box bg="#FAF1ED" p="10px 0px" mt="40px" pb="35px" marginBottom="100px">
@@ -95,7 +94,7 @@ function Homefive() {
           }}
           gap="15px"
         >
-          {hotelData.map((hotel) => (
+          {hotels.map((hotel) => (
             <Box
               key={hotel.id}
               bg="white"
@@ -107,13 +106,13 @@ function Homefive() {
               transition="transform 0.3s, box-shadow 0.3s"
               _hover={{ transform: "scale(1.05)", boxShadow: "xl" }}
             >
-              <Image src={hotel.img} alt={hotel.title} />
+              <Image src={hotel.image} alt={hotel.name} h="200px" w="100%" objectFit="cover" />
               <Box p="15px">
                 <Text fontWeight="600" fontSize="lg" mb="2">
-                  {hotel.title}
+                  {hotel.name}
                 </Text>
                 <Text fontWeight="500" fontSize="md" color="gray.600">
-                  {hotel.rating}
+                  Rating: {hotel.rating}
                 </Text>
                 <Text fontWeight="400" fontSize="md" color="gray.700">
                   {hotel.price}
@@ -131,6 +130,7 @@ function Homefive() {
                 right="10px"
                 boxShadow="md"
                 _hover={{ bg: "gray.200" }}
+                cursor="pointer"
               >
                 <FavoriteBorderIcon />
               </Box>
@@ -141,6 +141,8 @@ function Homefive() {
     </Box>
   );
 }
+
+export default Homefive;
 
 // function Homefive() {
 //   const data = [
@@ -213,4 +215,3 @@ function Homefive() {
 //   );
 // }
 
-export default Homefive;

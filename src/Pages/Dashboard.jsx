@@ -1,29 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Heading, SimpleGrid, Card, CardHeader, CardBody, CardFooter, Text, Button, useToast } from '@chakra-ui/react';
-import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
     const [trips, setTrips] = useState([]);
-    const { token } = useAuth();
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (!token) {
-            navigate('/login');
-            return;
-        }
         const fetchTrips = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/api/trips');
+                const response = await apiClient.get('/trips');
                 setTrips(response.data);
             } catch (error) {
                 console.error("Error fetching trips", error);
             }
         };
         fetchTrips();
-    }, [token, navigate]);
+    }, []);
 
     return (
         <Box p="10" maxW="1200px" m="auto">

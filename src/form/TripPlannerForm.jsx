@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import apiClient from "../api/apiClient";
 import {
   Box,
   Button,
@@ -9,13 +9,15 @@ import {
   StepDescription,
   Flex,
   Center,
+  Spinner,
+  Text,
+  useToast,
 } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 import StageOneForm from "./StageOneForm";
 import StageTwoForm from "./StageTwoForm";
 import StageThreeForm from "./StageThreeForm";
 import StageFourForm from "./StageFourForm";
-import { Interests } from "@mui/icons-material";
 
 const steps = [
   { title: "First Step", description: "Enter your details" },
@@ -27,7 +29,9 @@ const steps = [
 const MultiStepForm = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [formData, setFormData] = useState({});
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const toast = useToast();
 
   const handleNext = () => {
     if (activeStep < steps.length - 1) {
@@ -43,53 +47,45 @@ const MultiStepForm = () => {
     }
   };
 
-  const handlePlaceSelection = () => {
-    handleNext();
-  };
-  const handleDateSelection = () => {
-    handleNext();
-  };
-
-  const handleTripSelect = () => {
-    handleNext();
-  };
+  const handlePlaceSelection = () => handleNext();
+  const handleDateSelection = () => handleNext();
+  const handleTripSelect = () => handleNext();
 
   const handleSubmit = async () => {
-    // Simulate API call or any other logic before navigation
-    // Example: Save form data, generate itinerary, etc.
-    console.log("Form submitted:", formData);
-    const question = `Create a detailed travel itinerary for a ${
-      formData.trip_Type
-    } trip to ${formData.selectedPlace} from ${formData.startDate} to ${
-      formData.endDate
-    } Consider my interests, which include ${[...formData.interests]}`;
-    console.log(question);
-    const itenary = await axios({
-      url: "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=AIzaSyCR27oPsrNw77sxbxCKJCUT8TAF9H_Jisc",
-      method: "post",
-      data: {
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: question,
-              },
-            ],
-          },
-        ],
-      },
-    });
-    // Redirect to itinerary page with the formData
+    setLoading(true);
+    try {
+      const startDate = formData.startDate;
+      const endDate = formData.endDate;
+      // Calculate number of days
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const days = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
 
-    const tripData =
-      itenary["data"]["candidates"][0]["content"]["parts"][0]["text"];
+      const response = await apiClient.post('/ai/generate-itinerary', {
+        destination: formData.selectedPlace,
+        days: days,
+        budget: formData.budget || 'flexible',
+        interests: formData.interests ? [...formData.interests] : [],
+      });
 
-    navigate("/itinerary", { state: { plannedItinerary: tripData } });
+      navigate("/itinerary", { state: { plannedItinerary: JSON.stringify(response.data) } });
+    } catch (error) {
+      console.error("Error generating itinerary:", error);
+      toast({
+        title: "Failed to generate itinerary",
+        description: error.response?.data?.error || "Please try again.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
   return (
     <Flex direction="column" align="center" h="100vh">
       <Box
@@ -174,11 +170,16 @@ const MultiStepForm = () => {
         </Box>
 
         <Flex mt={4} justify="space-between">
-          <Button onClick={handleBack} isDisabled={activeStep === 0}>
+          <Button onClick={handleBack} isDisabled={activeStep === 0 || loading}>
             Back
           </Button>
-          <Button onClick={handleNext}>
-            {activeStep === steps.length - 1 ? "Submit" : "Next"}
+          <Button
+            onClick={handleNext}
+            isLoading={loading && activeStep === steps.length - 1}
+            loadingText="Generating..."
+            colorScheme="green"
+          >
+            {activeStep === steps.length - 1 ? "Generate Itinerary" : "Next"}
           </Button>
         </Flex>
       </Box>

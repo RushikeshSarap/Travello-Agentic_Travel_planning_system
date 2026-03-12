@@ -11,17 +11,33 @@ def create_trip():
     data = request.get_json()
     user_id = get_jwt_identity()
     
-    new_trip = Trip(
-        name=data['name'],
-        destination=data['destination'],
-        start_date=datetime.strptime(data['start_date'], '%Y-%m-%d').date(),
-        end_date=datetime.strptime(data['end_date'], '%Y-%m-%d').date(),
-        budget=data.get('budget', 0.0),
-        creator_id=user_id
-    )
-    db.session.add(new_trip)
-    db.session.commit()
-    return jsonify({"msg": "Trip created", "id": new_trip.id}), 201
+    try:
+        if not data.get('name') or not data.get('destination'):
+            return jsonify({"error": "Name and destination are required"}), 400
+            
+        start_date_str = data.get('start_date')
+        end_date_str = data.get('end_date')
+        
+        if not start_date_str or not end_date_str:
+            return jsonify({"error": "Start date and end date are required"}), 400
+            
+        new_trip = Trip(
+            name=data['name'],
+            destination=data['destination'],
+            start_date=datetime.strptime(start_date_str, '%Y-%m-%d').date(),
+            end_date=datetime.strptime(end_date_str, '%Y-%m-%d').date(),
+            budget=float(data.get('budget', 0.0) or 0.0),
+            creator_id=user_id
+        )
+        db.session.add(new_trip)
+        db.session.commit()
+        return jsonify({"msg": "Trip created", "id": new_trip.id}), 201
+    except ValueError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Invalid data format: {str(e)}"}), 400
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to create trip: {str(e)}"}), 500
 
 @trip_bp.route('', methods=['GET'])
 @jwt_required()

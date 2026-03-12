@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Heading, Grid, GridItem, VStack, Text, Input, Button, useToast, Divider, List, ListItem } from '@chakra-ui/react';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import Map from '../Components/Thingstodo/Map/Map';
 
 const TripWorkspace = () => {
@@ -18,7 +18,7 @@ const TripWorkspace = () => {
     useEffect(() => {
         const fetchTripDetails = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/trips/${tripId}`);
+                const response = await apiClient.get(`/trips/${tripId}`);
                 setTrip(response.data);
             } catch (error) {
                 console.error(error);
@@ -27,7 +27,7 @@ const TripWorkspace = () => {
 
         const fetchComments = async () => {
             try {
-                const response = await axios.get(`http://localhost:5000/api/collab/trips/${tripId}/comments`);
+                const response = await apiClient.get(`/collab/trips/${tripId}/comments`);
                 setComments(response.data);
             } catch (error) {
                 console.error(error);
@@ -46,7 +46,7 @@ const TripWorkspace = () => {
         const time = prompt("Enter time (HH:MM):", "09:00");
         
         try {
-            await axios.post(`http://localhost:5000/api/trips/${tripId}/activity`, {
+            await apiClient.post(`/trips/${tripId}/activity`, {
                 day_number: dayNumber,
                 location: activity,
                 time: time,
@@ -54,7 +54,7 @@ const TripWorkspace = () => {
             });
             toast({ title: "Activity added", status: "success" });
             // Refresh trip details
-            const response = await axios.get(`http://localhost:5000/api/trips/${tripId}`);
+            const response = await apiClient.get(`/trips/${tripId}`);
             setTrip(response.data);
         } catch (error) {
             toast({ title: "Failed to add activity", status: "error" });
@@ -64,9 +64,9 @@ const TripWorkspace = () => {
     const handleAddComment = async () => {
         if (!newComment.trim()) return;
         try {
-            await axios.post(`http://localhost:5000/api/collab/trips/${tripId}/comments`, { content: newComment });
+            await apiClient.post(`/collab/trips/${tripId}/comments`, { content: newComment });
             setNewComment('');
-            const response = await axios.get(`http://localhost:5000/api/collab/trips/${tripId}/comments`);
+            const response = await apiClient.get(`/collab/trips/${tripId}/comments`);
             setComments(response.data);
         } catch (error) {
             toast({ title: "Failed to add comment", status: "error" });
@@ -75,7 +75,7 @@ const TripWorkspace = () => {
 
     const handleInvite = async () => {
         try {
-            await axios.post(`http://localhost:5000/api/trips/${tripId}/invite`, { trip_id: parseInt(tripId), username: inviteUser });
+            await apiClient.post(`/trips/${tripId}/invite`, { trip_id: parseInt(tripId), username: inviteUser });
             toast({ title: "Invite sent!", status: "success" });
             setInviteUser('');
         } catch (error) {

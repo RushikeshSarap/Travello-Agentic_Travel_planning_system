@@ -1,11 +1,26 @@
-import React, { useState } from "react";
-import { Box, Image, Text, Grid, Button, Flex, Select } from "@chakra-ui/react";
+import React, { useState, useEffect } from "react";
+import { Box, Image, Text, Grid, Button, Flex, Select, Spinner } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
-import { productData } from "./productdata";
-// import { productData } from "../Home/SouvenirMarketplace";
+import apiClient from "../../api/apiClient";
 
 const Marketplace = () => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await apiClient.get('/discovery/products');
+        setProducts(response.data);
+      } catch (error) {
+        console.error("Error fetching products", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
@@ -13,8 +28,10 @@ const Marketplace = () => {
 
   const filteredProducts =
     selectedCategory === "All"
-      ? productData
-      : productData.filter((product) => product.category === selectedCategory);
+      ? products
+      : products.filter((product) => product.category === selectedCategory);
+
+  if (loading) return <Flex justify="center" p="100px"><Spinner size="xl" /></Flex>;
 
   return (
     <Box bg="#FFF7E1" p="60px 0" minH="100vh">
@@ -48,15 +65,18 @@ const Marketplace = () => {
               overflow="hidden"
               position="relative"
               _hover={{ transform: "scale(1.05)", transition: "all 0.3s" }}
+              display="flex"
+              flexDirection="column"
+              justifyContent="space-between"
             >
               <Image
-                src={product.image}
+                src={product.image || "https://images.unsplash.com/photo-1544642899-f0d6e5f6ed6a?w=400"}
                 alt={product.name}
                 objectFit="cover"
                 w="100%"
                 h="200px"
               />
-              <Box p="20px" textAlign="left">
+              <Box p="20px" textAlign="left" flex="1">
                 <Text fontWeight="600" fontSize="2xl" mb="5px" color="black">
                   {product.name}
                 </Text>
@@ -64,7 +84,7 @@ const Marketplace = () => {
                   {product.price}
                 </Text>
                 <Button
-                  mt="20px"
+                  mt="auto"
                   fontWeight="700"
                   color="white"
                   bg="black"

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Button, Input, VStack, Heading, FormControl, FormLabel, NumberInput, NumberInputField, useToast } from '@chakra-ui/react';
-import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import apiClient from '../api/apiClient';
 import { useNavigate } from 'react-router-dom';
 
 const CreateTrip = () => {
@@ -12,18 +11,24 @@ const CreateTrip = () => {
         end_date: '',
         budget: 0
     });
-    const { token } = useAuth();
     const navigate = useNavigate();
     const toast = useToast();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axios.post('http://localhost:5000/api/trips', formData);
+            await apiClient.post('/trips', formData);
             toast({ title: "Trip created successfully", status: "success", duration: 3000 });
             navigate('/dashboard');
         } catch (error) {
-            toast({ title: "Failed to create trip", status: "error", duration: 3000 });
+            const errorMsg = error.response?.data?.error || "Failed to create trip";
+            toast({ 
+                title: "Failed to create trip", 
+                description: errorMsg,
+                status: "error", 
+                duration: 5000,
+                isClosable: true
+            });
         }
     };
 

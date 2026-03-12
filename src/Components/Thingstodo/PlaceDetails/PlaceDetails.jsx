@@ -2,6 +2,7 @@ import React from 'react';
 import { Image, Text, Card, CardBody, Flex, Icon, HStack, Stack, Tag, Button } from '@chakra-ui/react';
 import { MdLocationOn, MdPhone } from 'react-icons/md';
 import { StarIcon } from '@chakra-ui/icons';
+import apiClient from '../../../api/apiClient';
 import axios from 'axios';
 import { getPlacesData } from '../../../api';
 const PlaceDetails = ({ place, selected, refProp }) => {
@@ -72,27 +73,25 @@ const PlaceDetails = ({ place, selected, refProp }) => {
                         </Flex>
                     )}
                     <Flex mt={3}>
-                        {/* {place.web_url && (
-                        //     <Button 
-                        //         size="sm" 
-                        //         colorScheme="teal" 
-                        //         variant="outline"
-                        //         onClick={() => window.open(place.web_url, '_blank')}
-                        //     >
-                        //         Trip Advisor
-                        //     </Button>
-                        // )}
-                        // {place.website && (
-                        //     <Button 
-                        //         size="sm" 
-                        //         colorScheme="teal" 
-                        //         variant="outline" 
-                        //         ml={2}
-                        //         onClick={() => window.open(place.website, '_blank')}
-                        //     >
-                        //         Website
-                        //     </Button>
-                        )} */}
+                        <Button 
+                            size="xs" 
+                            colorScheme="blue" 
+                            onClick={async () => {
+                                const tId = new URLSearchParams(window.location.search).get('trip_id');
+                                if (!tId) return alert("Open via Trip Workspace");
+                                try {
+                                    await apiClient.post(`/trips/${tId}/activity`, {
+                                        day_number: 1,
+                                        location: place.name,
+                                        time: "10:00",
+                                        description: `Saved: ${place.address || ''}`
+                                    });
+                                    alert("Saved!");
+                                } catch (e) { alert("Error saving"); }
+                            }}
+                        >
+                            Save to Trip
+                        </Button>
                     </Flex>
                 </Stack>
             </CardBody>
